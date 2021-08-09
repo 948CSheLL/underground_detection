@@ -31,19 +31,19 @@ class Inv_para_prediction():
         self.para_dict = {}
         self.para_dict["k1"] = (self.X_1, self.y_all.iloc[:, 1:2])
         # 获得alpha1的标签
-        self.para_dict["alpha1"] = (self.X_1, self.y_all.iloc[:, 2:3])
+        self.para_dict["alpha1"] = (self.X_1.div(self.y_all.iloc[:, 1], axis="rows"), self.y_all.iloc[:, 2:3])
         # 获得beta1的标签
-        self.para_dict["beta1"] = (self.X_1, self.y_all.iloc[:, 3:4])
+        self.para_dict["beta1"] = (self.X_1.div(self.y_all.iloc[:, 1], axis="rows"), self.y_all.iloc[:, 3:4])
         # 获得gamma1的标签
-        self.para_dict["gamma1"] = (self.X_1, self.y_all.iloc[:, 4:5])
+        self.para_dict["gamma1"] = (self.X_1.div(self.y_all.iloc[:, 1], axis="rows"), self.y_all.iloc[:, 4:5])
         # 获得k2的标签
         self.para_dict["k2"] = (self.X_2, self.y_all.iloc[:, 5:6])
         # 获得alpha2的标签
-        self.para_dict["alpha2"] = (self.X_2, self.y_all.iloc[:, 6:7])
+        self.para_dict["alpha2"] = (self.X_2.div(self.y_all.iloc[:, 5], axis="rows"), self.y_all.iloc[:, 6:7])
         # 获得beta2的标签
-        self.para_dict["beta2"] = (self.X_2, self.y_all.iloc[:, 7:8])
+        self.para_dict["beta2"] = (self.X_2.div(self.y_all.iloc[:, 5], axis="rows"), self.y_all.iloc[:, 7:8])
         # 获得gamma2的标签
-        self.para_dict["gamma2"] = (self.X_2, self.y_all.iloc[:, 8:9])
+        self.para_dict["gamma2"] = (self.X_2.div(self.y_all.iloc[:, 5], axis="rows"), self.y_all.iloc[:, 8:9])
         self.model_dict = {}
         self.model_dict["decision_tree"] = tree.DecisionTreeRegressor()
         self.model_dict["linear_regression"] = LinearRegression()
@@ -79,11 +79,8 @@ class Inv_para_prediction():
             self.para_dict[para_name][0], self.para_dict[para_name][1], train_size=self.train_size)
         model.fit(X_train, np.ravel(y_train))
         score = model.score(X_test, y_test)
-        y_pred = model.predict(X_train)
-        # y_pred = model.predict(X_test)
-        print(method_name + ": ", X_train)
-        return y_pred, y_train.values, score
-        # return y_pred, y_test.values, score
+        y_pred = model.predict(X_test)
+        return y_pred, y_test.values, score
 
     def plot_parameters(self, para_name, method_name):
         y_pred, y_test, score = self.try_different_method(para_name, method_name)
