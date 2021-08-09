@@ -15,9 +15,9 @@ from openpyxl import Workbook
 
 class Inv_para_prediction():
 
-    def __init__(self, X_filename="snr00withoutnoise.csv", y_filename="snr00withoutnoise_inv_para.csv", train_size=0.95):
-        self.X_filename = "datas/" + X_filename
-        self.y_filename = "datas/" + y_filename
+    def __init__(self, X_filename="datas/snr00withoutnoise.csv", y_filename="datas/snr00withoutnoise_inv_para.csv", train_size=0.95):
+        self.X_filename = X_filename
+        self.y_filename = y_filename
         self.train_size = train_size
         # 通过read_csv来读取我们的目的数据集
         self.X_all = pd.read_csv(self.X_filename)
