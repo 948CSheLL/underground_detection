@@ -1,8 +1,10 @@
-import os
-from datetime import datetime
-import pandas as pd
+import math
 import numpy as np
+import os
+import pandas as pd
 import matplotlib.pyplot as plt
+from datetime import datetime
+from openpyxl import Workbook
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn import tree
@@ -10,12 +12,12 @@ from sklearn import svm
 from sklearn import neighbors
 from sklearn import ensemble
 from sklearn.tree import ExtraTreeRegressor
-from openpyxl import Workbook
 
 
 class Inv_para_prediction():
 
-    def __init__(self, X_filename="datas/snr00withoutnoise.csv", y_filename="datas/snr00withoutnoise_inv_para.csv", train_size=0.95):
+    def __init__(self, X_filename="datas/snr00withoutnoise.csv", y_filename="datas/snr00withoutnoise_inv_para.csv", train_size=0.8):
+        self.metal_mu_r = {"steel": 696.3028547, "nickel": 99.47183638, "aluminium": 1.000022202}
         self.X_filename = X_filename
         self.y_filename = y_filename
         self.train_size = train_size
@@ -58,8 +60,23 @@ class Inv_para_prediction():
         self.model_dict["bagging_regression"] = ensemble.BaggingRegressor()
         self.model_dict["extra_tree"] = ExtraTreeRegressor()
         self.dir = "images/" + datetime.now().strftime('%Y%m%d%H%M%S%f')
+        self.init_dict()
+
+    def init_dict(self):
         for method_name in self.model_dict.keys():
             os.makedirs(self.dir + "/" + str(method_name))
+
+    def cal_beta_by(self, mu_r):
+        return 2 * (( (1.38 * (mu_r + 2)) / (math.pi * (mu_r - 1)) ) ** 0.5)
+
+    def judge_metal_type(self, beta):
+        result = ""
+        error = 999999999999999.999
+        for metal_name, metal_mu_r in self.metal_mu_r.items():
+            if error > math.fabs(self.cal_beta_by(metal_mu_r) - beta):
+                error = math.fabs(self.cal_beta_by(metal_mu_r) - beta)
+                result = metal_name
+        return result
 
     def write_into_excel(self, filename, head, datas_to_be_handled):
         work_book = Workbook()
@@ -84,6 +101,15 @@ class Inv_para_prediction():
 
     def plot_parameters(self, para_name, method_name):
         y_pred, y_test, score = self.try_different_method(para_name, method_name)
+        if para_name == "beta1":
+            correct = 0
+            for i, val in enumerate(y_pred):
+                if self.judge_metal_type(val) == self.judge_metal_type(y_test[i][0]):
+                    correct += 1
+                else:
+                    print(self.judge_metal_type(val), self.judge_metal_type(y_test[i][0]))
+                    print("")
+            print("correct rate: ", correct / len(y_pred))
         plt.figure()
         plt.plot(np.arange(len(y_test)), y_test, "go-", label=para_name + " True value")
         plt.plot(np.arange(len(y_pred)), y_pred, "ro-", label=para_name + " Predict value")
